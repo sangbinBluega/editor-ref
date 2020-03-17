@@ -1,0 +1,26 @@
+@import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:regular,bold,italic&subset=latin,latin-ext");
+
+html,
+body {
+  font-family: "Open Sans", sans-serif;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+.dim {
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+
+  > div {
+    text-align: center;
+    padding-top: calc(50% - 50px);
+  }
+}
