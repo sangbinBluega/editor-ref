@@ -6,7 +6,7 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 
 import "./App.scss";
 
-//import sampleData from "./sampledata";
+import sampleData from "./sampledata";
 
 const onError = e => {
   console.error(e);
@@ -59,7 +59,7 @@ function App() {
   const [jsonData, setJsonData] = useState([]);
 
   const onChange = e => {
-    checkPlugin(e);
+    //checkPlugin(e);
     _notifyUpdateToFrame(e);
   };
 
@@ -70,14 +70,11 @@ function App() {
         let data = ev.data.mqfEditor.data;
 
         if (event === "setQ" && data.q) {
+          setInitPage(false);
+
           // 편집할 Q
           setUpdate(true);
           setJsonData(data.q);
-
-          //  Meta 입력 항목 Reset
-          document.getElementById("plugin/asset").value = "";
-          document.getElementById("plugin/subject").value = "";
-          document.getElementById("plugin/sentence").value = "";
         } else if (event === "setMeta") {
         }
       }
@@ -91,13 +88,13 @@ function App() {
   });
 
   const JsonEditor = importedComponent(() =>
-    Promise.all([
-      import(/* webpackChunkName:'jsoneditor' */ "jsoneditor-react")
-    ]).then(([{ JsonEditor: Editor }]) => {
-      return function EditorHoc(props) {
-        return <Editor ref={editor} {...props} innerRef={retHtml} />;
-      };
-    })
+    Promise.all([import("jsoneditor-react")]).then(
+      ([{ JsonEditor: Editor }]) => {
+        return function EditorHoc(props) {
+          return <Editor ref={editor} {...props} innerRef={retHtml} />;
+        };
+      }
+    )
   );
 
   const buildEditor = data => {
@@ -124,19 +121,9 @@ function App() {
     }, 0);
   };
 
-  return (
-    <>
-      {update ? (
-        <Scrollbars>{buildEditor(jsonData)}</Scrollbars>
-      ) : (
-        <div className="dim">
-          <div>
-            <CircularProgress />
-          </div>
-        </div>
-      )}
-    </>
-  );
+  console.error(jsonData, update);
+
+  return <>{update && <Scrollbars>{buildEditor(jsonData)}</Scrollbars>}</>;
 }
 
 export default App;
