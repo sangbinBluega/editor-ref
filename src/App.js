@@ -2,11 +2,11 @@ import React, { useRef, useEffect, useState } from "react";
 import { JsonEditor as Editor } from "jsoneditor-react";
 import { Scrollbars } from "react-custom-scrollbars";
 import importedComponent from "react-imported-component";
-import CircularProgress from "@material-ui/core/CircularProgress";
+//import CircularProgress from "@material-ui/core/CircularProgress";
 
 import "./App.scss";
 
-import sampleData from "./sampledata";
+//import sampleData from "./sampledata";
 
 const onError = e => {
   console.error(e);
@@ -21,6 +21,10 @@ const editorStyleModfiy = html => {
     tree = html.getElementsByClassName(
       "jsoneditor-outer has-main-menu-bar has-nav-bar"
     )[0];
+
+  if (!root) {
+    return;
+  }
 
   //최상단
   root.style.border = "0px";
@@ -57,6 +61,48 @@ function App() {
 
   const [update, setUpdate] = useState(false);
   const [jsonData, setJsonData] = useState([]);
+  const [lastQ, setLastQ] = useState();
+
+  const checkPlugin = q => {
+    let metaList = ["asset", "subject", "sentence"];
+    let meta = window.tsQeditor.metaTag(q);
+
+    metaList.forEach(function(item) {
+      let sendValue = [];
+      for (let i in meta) {
+        if (i.indexOf(item + "|") === 0) {
+          sendValue.push({ data: i, value: meta[i] });
+        }
+      }
+
+      window.parent.postMessage(
+        {
+          mqfEditor: {
+            event: "onEditMeta",
+            data: {
+              target: `${item}Manager`,
+              value: sendValue
+            }
+          }
+        },
+        "*"
+      );
+    });
+    setLastQ(q);
+  };
+
+  //  수신된 Meta 지정 요청을 수행함
+  const onSetMeta = data => {
+    if (lastQ) {
+      if (window.tsQeditor.metaUntag(lastQ, /*{}*/ data)) {
+        setUpdate(true);
+        setJsonData(lastQ);
+        _notifyUpdateToFrame(lastQ);
+      } else {
+        console.error("Unknown Meta", data); // Exception 상황 추적 목적
+      }
+    }
+  };
 
   const onChange = e => {
     //checkPlugin(e);
@@ -70,12 +116,13 @@ function App() {
         let data = ev.data.mqfEditor.data;
 
         if (event === "setQ" && data.q) {
-          setInitPage(false);
-
           // 편집할 Q
+          checkPlugin(data.q);
           setUpdate(true);
           setJsonData(data.q);
         } else if (event === "setMeta") {
+          setUpdate(false);
+          onSetMeta(data);
         }
       }
     };
@@ -103,7 +150,6 @@ function App() {
         value={data}
         onChange={onChange}
         onError={onError}
-        history
         mode={Editor.modes.tree}
       />
     );
@@ -120,8 +166,6 @@ function App() {
       editorStyleModfiy(html);
     }, 0);
   };
-
-  console.error(jsonData, update);
 
   return <>{update && <Scrollbars>{buildEditor(jsonData)}</Scrollbars>}</>;
 }
