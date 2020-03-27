@@ -2,11 +2,10 @@ import React, { useRef, useEffect, useState } from "react";
 import { JsonEditor as Editor } from "jsoneditor-react";
 import { Scrollbars } from "react-custom-scrollbars";
 import importedComponent from "react-imported-component";
-//import CircularProgress from "@material-ui/core/CircularProgress";
 
 import "./App.scss";
 
-//import sampleData from "./sampledata";
+import sampleData from "./sampledata";
 
 const onError = e => {
   console.error(e);
@@ -60,8 +59,8 @@ function App() {
   const editor = useRef();
 
   const [update, setUpdate] = useState(false);
-  const [jsonData, setJsonData] = useState([]);
-  const [lastQ, setLastQ] = useState();
+  const [jsonData, setJsonData] = useState({});
+  const [lastQ, setLastQ] = useState({});
 
   const checkPlugin = q => {
     let metaList = ["asset", "subject", "sentence"];
@@ -114,7 +113,6 @@ function App() {
       if (ev.data && ev.data.mqfEditor) {
         let event = ev.data.mqfEditor.event;
         let data = ev.data.mqfEditor.data;
-
         if (event === "setQ" && data.q) {
           // 편집할 Q
           checkPlugin(data.q);
@@ -132,7 +130,7 @@ function App() {
     return () => {
       window.removeEventListener("message", onMessage);
     };
-  });
+  }, [update]);
 
   const JsonEditor = importedComponent(() =>
     Promise.all([import("jsoneditor-react")]).then(
@@ -145,6 +143,13 @@ function App() {
   );
 
   const buildEditor = data => {
+    if (JSON.stringify(data) === "{}") {
+      if (JSON.stringify(lastQ) === "{}") {
+        return <></>;
+      }
+      data = sampleData;
+    }
+
     return (
       <JsonEditor
         value={data}
@@ -163,11 +168,20 @@ function App() {
     html.style.display = "none";
 
     setTimeout(() => {
+      editor.current.expandAll();
       editorStyleModfiy(html);
     }, 0);
   };
 
-  return <>{update && <Scrollbars>{buildEditor(jsonData)}</Scrollbars>}</>;
+  return (
+    <>
+      {update &&
+        JSON.stringify(jsonData) !== "{}" &&
+        JSON.stringify(lastQ) !== "{}" && (
+          <Scrollbars>{buildEditor(jsonData)}</Scrollbars>
+        )}
+    </>
+  );
 }
 
 export default App;
