@@ -10,7 +10,7 @@
     "@testing-library/user-event": "^7.1.2",
     "jsoneditor": "^8.6.1",
     "jsoneditor-react": "^3.0.0",
-    "node-sass": "^4.13.1",
+    "node-sass": "^7.0.0",
     "react": "^16.13.0",
     "react-custom-scrollbars": "^4.2.1",
     "react-dom": "^16.13.0",
